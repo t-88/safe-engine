@@ -1,5 +1,6 @@
 # safe browser
-safe as in slow as fuck engine, is a browser engine written in python only works with **HTTP/1.0**.   
+<<<<<<< HEAD
+safe as in slow as fuck engine, is a browser engine written in python **only works with http and https version 1.0** 
 fellowing [browser engineering website](https://browser.engineering/). 
 
 # Steps
