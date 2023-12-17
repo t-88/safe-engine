@@ -5,7 +5,14 @@ import ssl
 
 
 class URL():
-    def __init__(self,url : str):
+    def __init__(self,url : str = None):
+        self.url = ""
+
+        if url: self.parse_url(url)    
+
+    def parse_url(self,url : str = None):
+        if not url: return
+        
         url =  url if url[-1] != "/" else url[:-1] # remove / in the end of the url
         self.url = url  
 
@@ -28,10 +35,9 @@ class URL():
         if self.protocol == "https":
             self.port = 443  # https port
 
-
         # const request to get the html page
         self.get_request = f"GET /{self.page_path} HTTP/1.0\nHost: {self.host}\n\n".encode()
-        
+
     def print_state(self):
         print("url: ",self.url)
         print("host: ",self.host)
@@ -40,7 +46,12 @@ class URL():
         print("page_path: ",self.page_path)
         print("get-request: ",self.get_request)
     
-    def request(self):
+    def request(self,url : str):
+        if url: self.parse_url(url)
+        if not self.url: 
+            print("[Error] no url provided")
+            return 
+
         s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 
         # handle https using ssl
