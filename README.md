@@ -10,6 +10,8 @@ those are the steps i am taking to build the safe engine, i will get to doing ex
 - [ ] render the http reponse body aka the website
     - [x] implementation 
     - [ ] exercises 
+- [x] implement a simple html parser
+    - [x] implementation 
 
 
 
