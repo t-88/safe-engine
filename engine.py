@@ -9,7 +9,7 @@ import helper
 
 
 parser = html_parser.HtmlParser()
-html_src = open("test.html").read()
+html_src = open("html_parser/test.html").read()
 tokens = parser.parse(html_src)
 
 
