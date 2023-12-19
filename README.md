@@ -18,4 +18,5 @@ those are the steps i am taking to build the safe engine, i will get to doing ex
 ## ScreenShots
 ### Simple Ui With Scrolling
 ![Simple Ui With Scrolling](./screenshots/simple_ui_interface_with_scrolling.gif)     
+### Search Bar + Simple Html Preview
 ![Search Bar](./screenshots/search_engine_html_parser.gif)     
