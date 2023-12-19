@@ -1,5 +1,9 @@
 import tkinter
 import url
+from html_parser.html_parser import HtmlParser
+from html_parser.html_tree_builder import HtmlTreeBuilder
+from html_parser.tree_node import TreeNode,TreeNodeType
+import helper
 
 WIDTH , HEIGHT = 800 , 600
 
@@ -53,6 +57,7 @@ class Browser:
 
 
         self.is_running = True
+        self.error_exit = False
 
 
         self.url = url.URL()
@@ -62,14 +67,44 @@ class Browser:
         body =  self.url.request(url)
         if not body: body = f"[Error] Failed to get '{url}' sorry not sorry"
         
-        self.canvas.delete("all")
-        self.canvas.create_text(0,0,text=body,anchor="nw")
-
+        return body
 
     def on_search(self):
-        if not self.search_bar_input.get():
-            return 
-        self.to_website(self.search_bar_input.get())
+        # return if not input is given
+        if not self.search_bar_input.get(): return
+
+
+        html_src = self.to_website(self.search_bar_input.get())
+        self.render_document(html_src)
+
+    def render_document(self,src):
+        tokens = HtmlParser().parse(src=src)
+        builder = HtmlTreeBuilder()
+        tree =  builder.build(tokens)
+        
+        out_str = builder.print()
+        self.canvas.create_text(0,0,text=out_str,anchor="nw")
+        # self.traverse_and_render_tree(tree)
+
+    def traverse_and_render_tree(self,node):
+        # start by root
+        if node.typ == TreeNodeType.Root:
+            for node in node.value:
+                self.render_tag(node)
+        else:
+            print(f"[Unreachable] Unkown TreeNode {node}")
+            exit(-1)
+
+    def render_tag(self,node):
+        # ignore this tags, they are not visible
+        if node.tag in ["html"]:
+            for child in node.value:
+                self.render_tag(child)
+        else:
+            print(f"[Unreachable] Unhandled tag {node.tag}")
+            # self.error_exit = True
+            exit(-1)
+
 
     # user interface functions
     def screen_scroll(self,dir):
@@ -111,7 +146,7 @@ class Browser:
 
 
     def run(self):
-        while self.is_running:
+        while self.is_running and not self.error_exit:
             self.update()
             self.render()
         

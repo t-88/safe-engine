@@ -1,29 +1,7 @@
 from html_parser.html_token import TokenType, Token
-from enum import Enum
+from html_parser.tree_node import TreeNode,TreeNodeType
 import helper
 
-TreeNodeType = Enum("TreeNodeType",[
-    "Root",
-    "Node",
-    "Literal"
-])
-
-class TreeNode():
-    def __init__(self,typ = TreeNodeType.Node, tag = "",value = "",props = []):
-        self.value = value
-        self.tag = tag
-        self.props = props
-        self.typ = typ
-
-    def __str__(self):
-        props = f"props={self.props} " if len(self.props) != 0 else ""
-        tag = f"tag={self.tag} " if self.tag else ""
-        value =  f"value={self.value}" if self.value else ""
-
-        return f"<TreeNode {tag}{props}{value}>"
-
-    def __repr__(self):
-        return self.__str__()
 
 class HtmlTreeBuilder():
     def __init__(self):
@@ -32,7 +10,17 @@ class HtmlTreeBuilder():
         self.tokens = []
 
         # data that is not shown in the website like title, doctype and links....
+        self.metadata_tags = ["meta","title"]
         self.html_metadata = {}
+
+        # tags i dont want to handle yet
+        self.skippable_tags = ["style","head"] 
+        self.skipped_nodes = []
+
+        #TODO: add token in parser for this type of tags
+        # self closing tags
+        self.self_closing = ["meta"]
+
 
     def eot(self):
         return self.index >= len(self.tokens) or self.tokens[self.index].typ == TokenType.Eof  
@@ -44,11 +32,33 @@ class HtmlTreeBuilder():
         self.index = 0
 
         while not self.eot():
-            node = self.parse_tag()
+            node = self.parse_self_closing_tags()
             if node: self.tree.value.append(node)
             
         return self.tree
+    
+    def parse_self_closing_tags(self):
+        if self.eot(): return None
 
+        if self.tokens[self.index].typ == TokenType.Tag_Open and self.tokens[self.index].value in self.self_closing:
+            node = TreeNode(
+                tag=self.parse_basic(),
+                props=self.parse_props(),
+                value=[],
+            )
+            
+            if node.tag in self.metadata_tags:
+                self.html_metadata[node.tag] = [node.props,node.value]
+                return  
+            
+            if node.tag in self.skippable_tags:
+                self.skipped_nodes.append(node)
+                return              
+
+            return node
+        
+        return self.parse_tag()
+    
     def parse_tag(self):
         if self.eot(): return None
 
@@ -60,12 +70,26 @@ class HtmlTreeBuilder():
             )
             
             while not self.eot() and self.tokens[self.index].typ != TokenType.Tag_Close:
-                node.value.append(self.parse_tag())
-            
+                elem = self.parse_self_closing_tags()
+                if elem != None: node.value.append(elem)
+
+
             # skip the Tag_Close Token
             self.index += 1
+
+
+            if node.tag in self.metadata_tags:
+                self.html_metadata[node.tag] = [node.props,node.value]
+                return  
+            
+            if node.tag in self.skippable_tags:
+                self.skipped_nodes.append(node)
+                return              
+
+            print(node.tag)
             return node
         
+
         return self.parse_basic()
 
     def parse_basic(self):
@@ -105,19 +129,25 @@ class HtmlTreeBuilder():
         if elem == None: elem = self.tree
 
         if elem.typ == TreeNodeType.Root:
+            out_str = ""
             # start of the doc
             for node in elem.value:
-                self.print(node)
+                out_str += self.print(node)
+            return out_str
         elif elem.typ == TreeNodeType.Node:
             # print tag with its props
+            out_str = f"{'    ' * depth}{elem.tag} {elem.props if len(elem.props) else ''}\n"
+            
             print(f"{'    ' * depth}{elem.tag}",end=" ")
             print(elem.props if len(elem.props) else "")
 
             for node in elem.value:
-                self.print(node,depth=depth + 1)
+                out_str += self.print(node,depth=depth + 1)
+            return out_str
         elif elem.typ == TreeNodeType.Literal:
             # print the text
             print(f"{'    ' * depth}{elem.value}")
+            return f"{'    ' * depth}{elem.value}\n"
         else:
             print(f"[Unreachable] Unkown TreeNode {elem}")
             exit(-1)

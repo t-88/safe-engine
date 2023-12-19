@@ -2,6 +2,7 @@ from html_parser.html_token import TokenType, Token
 import helper
 
 
+#TODO: handle self closing tags
 class HtmlParser():
     def __init__(self):
         self.tokens = []
@@ -14,6 +15,10 @@ class HtmlParser():
     
 
     def parse(self,src):
+        if not src: 
+            print("[Error] No src provided to html_parser")
+            exit(-1)
+
         self.index = 0
         self.src = src
         self.tokens = []
