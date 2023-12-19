@@ -1,7 +1,7 @@
 import tkinter
 import url
 
-WIDTH , HEIGHT = 600 , 400
+WIDTH , HEIGHT = 800 , 600
 
 class Browser:
     def __init__(self):
@@ -19,13 +19,32 @@ class Browser:
         self.scroll_x = 0
 
 
+
         # rendering
+        self.root.config(bg="white")
+            
+        self.search_bar_frame =  tkinter.Frame(self.root,width=WIDTH,height=50,bg="white")
+        self.search_bar_input = tkinter.Entry(self.search_bar_frame)
+        self.search_bar_input.insert(0,"https://example.com/")
+        self.search_bar_button = tkinter.Button(self.search_bar_frame,text="Search",command=self.on_search)
+        
+
+
+        self.search_bar_input.grid(row=0, column=0,padx=5)
+        self.search_bar_button.grid(row=0, column=1,padx=5)
+        self.search_bar_frame.pack(anchor="e",pady=2)
+
+
         self.canvas = tkinter.Canvas(
                                         self.root,
-                                        width=WIDTH,height=HEIGHT,
+                                        bg="white",
+                                        width=WIDTH,height=HEIGHT - self.search_bar_frame.winfo_height(),
                                         yscrollincrement=self.yscroll_speed,xscrollincrement=self.xscroll_speed
                                     )
         self.canvas.pack()
+
+
+
 
         # bind the events
         self.root.bind("<KeyPress>",self.on_key_press_event)
@@ -47,10 +66,12 @@ class Browser:
         self.canvas.create_text(0,0,text=body,anchor="nw")
 
 
+    def on_search(self):
+        if not self.search_bar_input.get():
+            return 
+        self.to_website(self.search_bar_input.get())
+
     # user interface functions
-
-
-
     def screen_scroll(self,dir):
         # scrolls the website screen on x axis and y axis
 
